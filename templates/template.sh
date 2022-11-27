@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# shellcheck disable=SC1091,SC2154
 VERSION='1.0.0'
 
 #------------------------------------------------------------------------------#
@@ -39,17 +39,25 @@ SCRIPT_FILENAME=$(basename "$self")
 SCRIPT_NAME=${SCRIPT_FILENAME}
 # Info
 SCRIPT_AUTHOR="tmiland"
-SCRIPT_DESCRIPTION="A basic template for bash/shell scripts"
+SCRIPT_DESCRIPTION="Bash template for bash/shell scripts"
 SCRIPT_REPO_URL="https://github.com/tmiland/template.sh"
+# Fonts
+USE_FONTS="yes"
+FONT_PATH="../.fonts"
 # Icons
-ARROW='➜'
-DONE='✔'
-INFO='ℹ'
-PROGRESS='➟'
-WARNING='⚠'
-ERROR='✗'
-FATAL='✘'
-
+if [[ $USE_FONTS = "yes" ]]; then
+  # If fonts exist in FONT_PATH
+  if [[ -d $FONT_PATH ]]; then
+    # Nerd Fonts: https://github.com/ryanoasis/nerd-fonts/wiki/Icon-Names-in-Shell
+    # Font Awesome
+    source "$FONT_PATH"/i_fa.sh
+    # Codicons
+    source "$FONT_PATH"/i_cod.sh
+    # Display icons
+    SCRIPT_DESCRIPTION="$i_cod_terminal_bash ${SCRIPT_DESCRIPTION}"
+    SCRIPT_REPO_URL="$i_fa_github ${SCRIPT_REPO_URL}"
+  fi
+fi
 # scolors - Color constants
 # canonical source http://github.com/swelljoe/scolors
 # do we have tput?
@@ -118,7 +126,6 @@ else
   MAGENTA_BG=''
   CYAN_BG=''
   WHITE_BG=''
-
   BOLD=''
   UNDERLINE=''
   NORMAL=''
@@ -133,14 +140,46 @@ message() {
   MESSAGE=""
   MESSAGE_TYPE="${1}"
   MESSAGE="${2}"
+  # Icons
+  if [[ $USE_FONTS = "yes" ]]; then
+    # If fonts exist in FONT_PATH
+    if [[ -d $FONT_PATH ]]; then
+      INFO=$i_fa_info_circle
+      PROGRESS=$i_fa_wrench
+      RECOMMEND=$i_fa_exclamation_circle
+      FINISHED=$i_fa_check_circle
+      WARNING=$i_fa_warning
+      ERROR=$i_fa_times_circle_o
+      FATAL=$i_fa_times_circle
+      # Else use basic fonts
+    else
+      INFO='ℹ'
+      PROGRESS='➟'
+      RECOMMEND='➜'
+      FINISHED='✔'
+      WARNING='⚠'
+      ERROR='✗'
+      FATAL='✘'
+    fi
+    # Blank if $USE_FONTS = "no"
+  else
+    INFO=''
+    PROGRESS=''
+    RECOMMEND=''
+    FINISHED=''
+    WARNING=''
+    ERROR=''
+    FATAL=''
+  fi
 
   case ${MESSAGE_TYPE} in
-    info)     printf "%s\\n" "  [${GREEN}${ARROW}${NORMAL}] ${MESSAGE}" ;;
-    progress) printf "%s\\n" "  [${BLUE}${PROGRESS}${NORMAL}] ${MESSAGE}" ;;
-    recommend)printf "%s\\n" "  [${CYAN}${INFO}${NORMAL}] ${MESSAGE}" ;;
-    warn)     printf "%s\\n" "  [${YELLOW}${WARNING}${NORMAL}] WARNING! ${MESSAGE}" ;;
-    error)    printf "%s\\n" "  [${RED}${ERROR}${NORMAL}] ERROR! ${MESSAGE}" >&2 ;;
-    fatal)    printf "%s\\n" "  [${RED}${FATAL}${NORMAL}] FATAL! ${MESSAGE}" >&2
+    info)     printf "%s\\n" "  ${GREEN}${INFO}${NORMAL}  ${MESSAGE}" ;;
+    progress) printf "%s\\n" "  ${BLUE}${PROGRESS}${NORMAL}  ${MESSAGE}" ;;
+    recommend)printf "%s\\n" "  ${MAGENTA}${RECOMMEND}${NORMAL}  ${MESSAGE}" ;;
+    finished) printf "%s\\n" "  ${GREEN}${FINISHED}${NORMAL}  ${MESSAGE}" ;;
+    warn)     printf "%s\\n" "  ${YELLOW}${WARNING}${NORMAL}  WARNING! ${MESSAGE}" ;;
+    error)    printf "%s\\n" "  ${RED}${ERROR}${NORMAL}  ERROR! ${MESSAGE}" >&2 ;;
+    fatal)    printf "%s\\n" "  ${RED}${FATAL}${NORMAL}  FATAL! ${MESSAGE}" >&2
       exit 1 ;;
     *) printf "%s\\n" "  [?] UNKNOWN: ${MESSAGE}" ;;
   esac
@@ -274,6 +313,7 @@ main() {
   message info "This is a info test message"
   message progress "This is a progress test message"
   message recommend "This is a recommend test message"
+  message finished "This is a finished test message"
   message warn "This is a warn test message"
   message error "This is a error test message"
   message fatal "This is a fatal test message"
